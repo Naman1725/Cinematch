@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings"""
 
     # Application
-    APP_NAME: str = "Movie Recommendation System"
+    APP_NAME: str = "CineMatch"
     APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
@@ -25,16 +25,16 @@ class Settings(BaseSettings):
     TMDB_API_KEY: str
     TMDB_BASE_URL: str = "https://api.themoviedb.org/3"
 
-    # Email
-    SMTP_HOST: str
+    # Email (Optional - for password reset, etc.)
+    SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
-    SMTP_USER: str
-    SMTP_PASSWORD: str
-    EMAIL_FROM: str
-    EMAIL_FROM_NAME: str = "Movie Recommendation System"
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    EMAIL_FROM: Optional[str] = None
+    EMAIL_FROM_NAME: str = "CineMatch"
 
     # Frontend
-    FRONTEND_URL: str = "http://localhost:3000"
+    FRONTEND_URL: Optional[str] = None
 
     # Redis
     REDIS_URL: Optional[str] = None
