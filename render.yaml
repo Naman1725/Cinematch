@@ -1,0 +1,32 @@
+# Render Blueprint for CineMatch Movie Recommendation System
+
+services:
+  # Backend API Service
+  - type: web
+    name: cinematch-api
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        value: sqlite:///./cinematch.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: TMDB_API_KEY
+        sync: false  # Add your TMDB API key manually in Render dashboard
+      - key: TMDB_BASE_URL
+        value: https://api.themoviedb.org/3
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false

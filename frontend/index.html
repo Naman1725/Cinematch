@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMatch - Movie Recommendation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Navbar -->
+    <nav class="gradient-bg shadow-2xl sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/>
+                    </svg>
+                    <span class="text-2xl font-bold">CineMatch</span>
+                </div>
+                <div id="nav-guest" class="flex items-center space-x-6">
+                    <button onclick="showSection('home')" class="hover:text-purple-200 transition">Home</button>
+                    <button onclick="showSection('login')" class="hover:text-purple-200 transition">Login</button>
+                    <button onclick="showSection('register')" class="px-6 py-2 bg-white text-purple-600 rounded-full font-semibold hover:bg-purple-50 transition">Sign Up</button>
+                </div>
+                <div id="nav-user" class="hidden items-center space-x-6">
+                    <button onclick="showSection('dashboard')" class="hover:text-purple-200 transition">Dashboard</button>
+                    <button onclick="showSection('api')" class="hover:text-purple-200 transition">API Demo</button>
+                    <button onclick="logout()" class="px-6 py-2 bg-white text-purple-600 rounded-full font-semibold hover:bg-purple-50 transition">Logout</button>
+                    <span id="user-name" class="text-sm text-purple-200"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="container mx-auto px-6 py-20">
+        <div class="text-center animate-fade-in">
+            <h1 class="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Discover Your Next Favorite Movie
+            </h1>
+            <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+                Get personalized movie recommendations tailored just for you.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <button onclick="continueAsGuest()" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition">
+                    Get Started as Guest
+                </button>
+                <button onclick="showSection('login')" class="px-8 py-4 glass rounded-full font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition">
+                    Sign In
+                </button>
+            </div>
+            <p class="text-center text-gray-400 mt-6">
+                No account needed! Start exploring movies as a guest or
+                <button onclick="showSection('register')" class="text-purple-400 hover:underline">create an account</button>
+                to save your preferences across devices.
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="grid md:grid-cols-3 gap-8 mt-20">
+            <div class="glass rounded-2xl p-8 card-hover">
+                <div class="text-5xl mb-4">🎬</div>
+                <h3 class="text-2xl font-bold mb-3">Vast Library</h3>
+                <p class="text-gray-300">Access to millions of movies from TMDB with real-time data</p>
+            </div>
+            <div class="glass rounded-2xl p-8 card-hover">
+                <div class="text-5xl mb-4">⭐</div>
+                <h3 class="text-2xl font-bold mb-3">Personalized</h3>
+                <p class="text-gray-300">Recommendations based on your unique taste and preferences</p>
+            </div>
+            <div class="glass rounded-2xl p-8 card-hover">
+                <div class="text-5xl mb-4">📊</div>
+                <h3 class="text-2xl font-bold mb-3">Track & Rate</h3>
+                <p class="text-gray-300">Keep track of movies you've watched, rate them, and build your watchlist</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Section -->
+    <section id="login" class="container mx-auto px-6 py-20 hidden">
+        <div class="max-w-md mx-auto glass rounded-2xl p-8 animate-fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-center">Welcome Back</h2>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="login-email" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold hover:shadow-xl transition">
+                    Sign In
+                </button>
+            </form>
+            <div class="text-center mt-4">
+                <button onclick="continueAsGuest()" class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold transition mb-3">
+                    Continue as Guest
+                </button>
+            </div>
+            <p class="text-center mt-4 text-gray-400">
+                Don't have an account? <button onclick="showSection('register')" class="text-purple-400 hover:underline">Sign up</button>
+            </p>
+            <div id="login-result" class="mt-4"></div>
+        </div>
+    </section>
+
+    <!-- Register Section -->
+    <section id="register" class="container mx-auto px-6 py-20 hidden">
+        <div class="max-w-md mx-auto glass rounded-2xl p-8 animate-fade-in">
+            <h2 class="text-3xl font-bold mb-6 text-center">Create Account</h2>
+            <form onsubmit="handleRegister(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                    <input type="text" id="reg-name" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Username</label>
+                    <input type="text" id="reg-username" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="reg-email" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="reg-password" required class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none transition">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold hover:shadow-xl transition">
+                    Create Account
+                </button>
+            </form>
+            <p class="text-center mt-4 text-gray-400">
+                Already have an account? <button onclick="showSection('login')" class="text-purple-400 hover:underline">Sign in</button>
+            </p>
+            <div id="register-result" class="mt-4"></div>
+        </div>
+    </section>
+
+    <!-- API Demo Section -->
+    <section id="api" class="container mx-auto px-6 py-20 hidden">
+        <div class="max-w-4xl mx-auto animate-fade-in">
+            <h2 class="text-4xl font-bold mb-6 text-center">API Demo</h2>
+            <p class="text-center text-gray-300 mb-10">Test the backend API in real-time</p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <button onclick="testEndpoint('/api/auth/register', 'POST', {email: 'demo@test.com', username: 'demouser', password: 'demo123456', full_name: 'Demo User'})"
+                        class="glass rounded-xl p-6 hover:bg-purple-500/20 transition text-left">
+                    <div class="text-3xl mb-2">👤</div>
+                    <h3 class="font-bold text-xl mb-2">Register User</h3>
+                    <p class="text-gray-400 text-sm">POST /api/auth/register</p>
+                </button>
+
+                <button onclick="testEndpoint('/', 'GET')"
+                        class="glass rounded-xl p-6 hover:bg-purple-500/20 transition text-left">
+                    <div class="text-3xl mb-2">🏠</div>
+                    <h3 class="font-bold text-xl mb-2">Root Endpoint</h3>
+                    <p class="text-gray-400 text-sm">GET /</p>
+                </button>
+
+                <button onclick="testEndpoint('/health', 'GET')"
+                        class="glass rounded-xl p-6 hover:bg-purple-500/20 transition text-left">
+                    <div class="text-3xl mb-2">💚</div>
+                    <h3 class="font-bold text-xl mb-2">Health Check</h3>
+                    <p class="text-gray-400 text-sm">GET /health</p>
+                </button>
+
+                <button onclick="window.open('http://localhost:8000/docs', '_blank')"
+                        class="glass rounded-xl p-6 hover:bg-purple-500/20 transition text-left">
+                    <div class="text-3xl mb-2">📚</div>
+                    <h3 class="font-bold text-xl mb-2">API Docs</h3>
+                    <p class="text-gray-400 text-sm">Swagger UI</p>
+                </button>
+            </div>
+
+            <div id="api-result" class="mt-8 glass rounded-xl p-6 hidden">
+                <h3 class="font-bold text-xl mb-4">Response:</h3>
+                <pre id="api-response" class="bg-gray-800 rounded p-4 overflow-auto text-sm"></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="container mx-auto px-6 py-20 hidden">
+        <div class="animate-fade-in">
+            <!-- Profile Card at Top -->
+            <div class="max-w-3xl mx-auto glass rounded-2xl p-8 mb-12">
+                <h2 class="text-3xl font-bold mb-2">
+                    <span id="greeting-message">Hello</span>, <span id="profile-display-name">User</span>!
+                </h2>
+                <p class="text-gray-300 mb-6">Welcome back to your personalized movie experience</p>
+
+                <div class="grid md:grid-cols-3 gap-4 bg-gray-800/50 rounded-xl p-6">
+                    <div>
+                        <p class="text-sm text-gray-400">Email</p>
+                        <p class="font-semibold" id="profile-card-email">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Username</p>
+                        <p class="font-semibold" id="profile-card-username">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Member Since</p>
+                        <p class="font-semibold" id="profile-card-created">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movies Section -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-3xl font-bold">🔥 Trending Movies</h3>
+                    <button onclick="loadMovies()" class="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-700 transition">
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="movies-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Movies will be loaded here -->
+                    <div class="text-center col-span-full text-gray-400 py-8">
+                        Loading trending movies...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="max-w-2xl mx-auto mt-8">
+                <div class="glass rounded-2xl p-8 card-hover text-center">
+                    <h3 class="text-2xl font-bold mb-3">🎯 Get Recommendations</h3>
+                    <p class="text-gray-300 mb-4">Let us suggest movies based on your preferences</p>
+                    <button onclick="showPreferencesModal()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold hover:shadow-xl transition">
+                        Set Your Preferences
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards at Bottom -->
+            <div class="grid md:grid-cols-3 gap-6 mt-12">
+                <div class="glass rounded-2xl p-6 text-center cursor-pointer hover:bg-purple-500/10 transition" onclick="showWatchedMovies()">
+                    <div class="text-5xl mb-3">🎬</div>
+                    <div class="text-4xl font-bold mb-2" id="stat-watched">0</div>
+                    <div class="text-gray-400">Movies Watched</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center cursor-pointer hover:bg-purple-500/10 transition" onclick="showRatedMovies()">
+                    <div class="text-5xl mb-3">⭐</div>
+                    <div class="text-4xl font-bold mb-2" id="stat-rated">0</div>
+                    <div class="text-gray-400">Movies Rated</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center cursor-pointer hover:bg-purple-500/10 transition" onclick="showWatchlistMovies()">
+                    <div class="text-5xl mb-3">📋</div>
+                    <div class="text-4xl font-bold mb-2" id="stat-watchlist">0</div>
+                    <div class="text-gray-400">In Watchlist</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Movie Details Modal -->
+    <div id="movie-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeModal()">
+        <div class="glass rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div id="modal-content" class="p-8">
+                <!-- Movie details will be loaded here -->
+            </div>
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-white hover:text-purple-400 text-4xl">&times;</button>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="rating-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeRatingModal()">
+        <div class="glass rounded-2xl max-w-md w-full" onclick="event.stopPropagation()">
+            <div class="p-8">
+                <h2 class="text-2xl font-bold mb-4 text-center" id="rating-movie-title">Rate Movie</h2>
+
+                <div class="mb-6">
+                    <p class="text-center text-gray-300 mb-4">How would you rate this movie?</p>
+                    <div class="flex justify-center gap-2" id="star-rating">
+                        <button onclick="setRating(1)" class="text-4xl hover:scale-110 transition">⭐</button>
+                        <button onclick="setRating(2)" class="text-4xl hover:scale-110 transition">⭐</button>
+                        <button onclick="setRating(3)" class="text-4xl hover:scale-110 transition">⭐</button>
+                        <button onclick="setRating(4)" class="text-4xl hover:scale-110 transition">⭐</button>
+                        <button onclick="setRating(5)" class="text-4xl hover:scale-110 transition">⭐</button>
+                    </div>
+                    <p class="text-center text-purple-400 font-bold mt-2" id="rating-display">Select a rating</p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2">Your Review (Optional)</label>
+                    <textarea id="movie-review" rows="4" placeholder="Share your thoughts about this movie..." class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="mark-watched" class="mr-2 w-5 h-5 rounded">
+                        <span>I've watched this movie</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="saveRating()" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold hover:shadow-xl transition">
+                        Save Rating
+                    </button>
+                    <button onclick="closeRatingModal()" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-bold transition">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences Modal -->
+    <div id="preferences-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closePreferencesModal()">
+        <div class="glass rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="p-8">
+                <h2 class="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    Set Your Movie Preferences
+                </h2>
+                <p class="text-center text-gray-300 mb-8">Tell us what you like and we'll recommend movies for you</p>
+
+                <form onsubmit="savePreferences(event)" class="space-y-6">
+                    <!-- Favorite Genres -->
+                    <div>
+                        <label class="block text-lg font-semibold mb-3">Favorite Genres (Select up to 5)</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="genres-list">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Favorite Actors -->
+                    <div>
+                        <label class="block text-lg font-semibold mb-3">Favorite Actors/Actresses</label>
+                        <input type="text" id="favorite-actors" placeholder="e.g., Tom Hanks, Meryl Streep, Leonardo DiCaprio" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
+                        <p class="text-sm text-gray-400 mt-2">Separate names with commas</p>
+                    </div>
+
+                    <!-- Favorite Directors -->
+                    <div>
+                        <label class="block text-lg font-semibold mb-3">Favorite Directors</label>
+                        <input type="text" id="favorite-directors" placeholder="e.g., Christopher Nolan, Steven Spielberg, Quentin Tarantino" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
+                        <p class="text-sm text-gray-400 mt-2">Separate names with commas</p>
+                    </div>
+
+                    <!-- Preferred Language/Country -->
+                    <div>
+                        <label class="block text-lg font-semibold mb-3">Preferred Language/Region</label>
+                        <select id="preferred-language" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="zh">Chinese</option>
+                            <option value="hi">Hindi</option>
+                            <option value="all">All Languages</option>
+                        </select>
+                    </div>
+
+                    <!-- Movies You Liked -->
+                    <div>
+                        <label class="block text-lg font-semibold mb-3">Movies You Loved</label>
+                        <input type="text" id="favorite-movies" placeholder="e.g., The Shawshank Redemption, Inception, Interstellar" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
+                        <p class="text-sm text-gray-400 mt-2">Separate movie titles with commas</p>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold hover:shadow-xl transition">
+                            Save & Get Recommendations
+                        </button>
+                        <button type="button" onclick="closePreferencesModal()" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-bold transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        const TMDB_API_KEY = '661f1b2284cd69dee7f1fc7a97c8ae3c';
+        const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+        const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+        const TMDB_BACKDROP_BASE = 'https://image.tmdb.org/t/p/original';
+        let currentToken = null;
+        let currentUser = null;
+        let userPreferences = null;
+        let selectedGenres = new Set();
+
+        // Rating modal state
+        let currentRatingMovieId = null;
+        let currentRatingMovieTitle = '';
+        let selectedRating = 0;
+
+        // LocalStorage keys for user data
+        const getStorageKey = (key) => `cinematch_${currentUser?.id || 'guest'}_${key}`;
+        const getWatchlist = () => JSON.parse(localStorage.getItem(getStorageKey('watchlist')) || '[]');
+        const getRatings = () => JSON.parse(localStorage.getItem(getStorageKey('ratings')) || '{}');
+        const getWatched = () => JSON.parse(localStorage.getItem(getStorageKey('watched')) || '[]');
+        const saveWatchlist = (data) => localStorage.setItem(getStorageKey('watchlist'), JSON.stringify(data));
+        const saveRatings = (data) => localStorage.setItem(getStorageKey('ratings'), JSON.stringify(data));
+        const saveWatched = (data) => localStorage.setItem(getStorageKey('watched'), JSON.stringify(data));
+
+        // Movie genres from TMDB
+        const GENRES = [
+            { id: 28, name: 'Action' },
+            { id: 12, name: 'Adventure' },
+            { id: 16, name: 'Animation' },
+            { id: 35, name: 'Comedy' },
+            { id: 80, name: 'Crime' },
+            { id: 99, name: 'Documentary' },
+            { id: 18, name: 'Drama' },
+            { id: 10751, name: 'Family' },
+            { id: 14, name: 'Fantasy' },
+            { id: 36, name: 'History' },
+            { id: 27, name: 'Horror' },
+            { id: 10402, name: 'Music' },
+            { id: 9648, name: 'Mystery' },
+            { id: 10749, name: 'Romance' },
+            { id: 878, name: 'Sci-Fi' },
+            { id: 10770, name: 'TV Movie' },
+            { id: 53, name: 'Thriller' },
+            { id: 10752, name: 'War' },
+            { id: 37, name: 'Western' }
+        ];
+
+        function showSection(section) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(section).classList.remove('hidden');
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('reg-email').value,
+                username: document.getElementById('reg-username').value,
+                password: document.getElementById('reg-password').value,
+                full_name: document.getElementById('reg-name').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('register-result');
+
+                if (response.ok) {
+                    currentToken = result.access_token;
+                    currentUser = result.user;
+                    resultDiv.innerHTML = `<div class="bg-green-500/20 border border-green-500 rounded-lg p-4">
+                        <p class="font-bold">Success!</p>
+                        <p class="text-sm">Account created! Redirecting to dashboard...</p>
+                    </div>`;
+                    setTimeout(() => {
+                        updateUIForLoggedInUser();
+                        showSection('dashboard');
+                        loadMovies();
+                    }, 1500);
+                } else {
+                    resultDiv.innerHTML = `<div class="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm">${result.detail || 'Registration failed'}</p>
+                    </div>`;
+                }
+            } catch (error) {
+                document.getElementById('register-result').innerHTML = `<div class="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                    <p class="font-bold">Connection Error</p>
+                    <p class="text-sm">Cannot connect to backend. Is it running on port 8000?</p>
+                </div>`;
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                const resultDiv = document.getElementById('login-result');
+
+                if (response.ok) {
+                    currentToken = result.access_token;
+                    currentUser = result.user;
+                    resultDiv.innerHTML = `<div class="bg-green-500/20 border border-green-500 rounded-lg p-4">
+                        <p class="font-bold">Login Successful!</p>
+                        <p class="text-sm">Welcome back, ${result.user.full_name}! Redirecting...</p>
+                    </div>`;
+                    setTimeout(() => {
+                        updateUIForLoggedInUser();
+                        showSection('dashboard');
+                        loadMovies();
+                    }, 1500);
+                } else {
+                    resultDiv.innerHTML = `<div class="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                        <p class="font-bold">Error</p>
+                        <p class="text-sm">${result.detail || 'Login failed'}</p>
+                    </div>`;
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML = `<div class="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                    <p class="font-bold">Connection Error</p>
+                    <p class="text-sm">Cannot connect to backend. Is it running on port 8000?</p>
+                </div>`;
+            }
+        }
+
+        async function testEndpoint(endpoint, method, body = null) {
+            const options = {
+                method: method,
+                headers: {'Content-Type': 'application/json'}
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            if (currentToken) {
+                options.headers['Authorization'] = `Bearer ${currentToken}`;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, options);
+                const result = await response.json();
+
+                document.getElementById('api-result').classList.remove('hidden');
+                document.getElementById('api-response').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('api-result').classList.remove('hidden');
+                document.getElementById('api-response').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function updateUIForLoggedInUser() {
+            // Update navbar
+            document.getElementById('nav-guest').classList.add('hidden');
+            document.getElementById('nav-user').classList.remove('hidden');
+            document.getElementById('nav-user').classList.add('flex');
+            document.getElementById('user-name').textContent = `Hello, ${currentUser.full_name}!`;
+
+            // Update greeting based on time of day
+            const hour = new Date().getHours();
+            let greeting = 'Hello';
+            if (hour < 12) greeting = 'Good Morning';
+            else if (hour < 18) greeting = 'Good Afternoon';
+            else greeting = 'Good Evening';
+
+            document.getElementById('greeting-message').textContent = greeting;
+            document.getElementById('profile-display-name').textContent = currentUser.full_name;
+
+            // Update profile card info in dashboard
+            document.getElementById('profile-card-email').textContent = currentUser.email;
+            document.getElementById('profile-card-username').textContent = currentUser.username;
+            document.getElementById('profile-card-created').textContent = new Date(currentUser.created_at).toLocaleDateString('en-GB');
+
+            // Update stats
+            updateStats();
+        }
+
+        function continueAsGuest() {
+            // Create a guest user
+            currentUser = {
+                id: 'guest',
+                full_name: 'Guest User',
+                email: 'guest@cinematch.com',
+                username: 'guest',
+                created_at: new Date().toISOString(),
+                is_guest: true
+            };
+            currentToken = null;
+
+            updateUIForLoggedInUser();
+            showSection('dashboard');
+
+            // Auto-load trending movies
+            loadMovies();
+        }
+
+        function logout() {
+            currentToken = null;
+            currentUser = null;
+            document.getElementById('nav-user').classList.add('hidden');
+            document.getElementById('nav-guest').classList.remove('hidden');
+            showSection('home');
+        }
+
+        // Movie functions - NOW WITH REAL TMDB DATA!
+        async function loadMovies() {
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Loading trending movies from TMDB...</div>';
+
+            try {
+                // Fetch REAL trending movies from TMDB
+                const response = await fetch(
+                    `${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}`
+                );
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const movies = data.results.slice(0, 18).map(movie => ({
+                        id: movie.id,
+                        title: movie.title,
+                        poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : 'https://via.placeholder.com/500x750/6366f1/ffffff?text=No+Poster',
+                        backdrop: movie.backdrop_path ? `${TMDB_BACKDROP_BASE}${movie.backdrop_path}` : null,
+                        rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
+                        year: movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A',
+                        overview: movie.overview || 'No description available',
+                        popularity: movie.popularity
+                    }));
+
+                    displayMovies(movies);
+                } else {
+                    grid.innerHTML = '<div class="col-span-full text-center text-red-400 py-8">No movies found</div>';
+                }
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                grid.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Error loading movies: ${error.message}</div>`;
+            }
+        }
+
+        function displayMovies(movies) {
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = movies.map(movie => `
+                <div class="card-hover cursor-pointer" onclick="showMovieDetails(${movie.id}, '${movie.title.replace(/'/g, "\\'")}')">
+                    <div class="relative overflow-hidden rounded-xl">
+                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-auto rounded-xl" onerror="this.src='https://via.placeholder.com/500x750/6366f1/ffffff?text=No+Image'">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-yellow-400 font-bold">⭐ ${movie.rating}</span>
+                                <span class="text-gray-300 text-sm">${movie.year}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="text-sm font-semibold mt-2 truncate">${movie.title}</h4>
+                </div>
+            `).join('');
+        }
+
+        async function searchMovies() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) {
+                loadMovies();
+                return;
+            }
+
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Searching TMDB database...</div>';
+
+            try {
+                // Search REAL movies on TMDB
+                const response = await fetch(
+                    `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+                );
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const movies = data.results.slice(0, 18).map(movie => ({
+                        id: movie.id,
+                        title: movie.title,
+                        poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : 'https://via.placeholder.com/500x750/6366f1/ffffff?text=No+Poster',
+                        backdrop: movie.backdrop_path ? `${TMDB_BACKDROP_BASE}${movie.backdrop_path}` : null,
+                        rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
+                        year: movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A',
+                        overview: movie.overview || 'No description available'
+                    }));
+
+                    displayMovies(movies);
+                } else {
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">No movies found for "' + query + '". Try another search term.</div>';
+                }
+            } catch (error) {
+                console.error('Error searching movies:', error);
+                grid.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Error searching: ${error.message}</div>`;
+            }
+        }
+
+        async function showMovieDetails(id, title) {
+            const modal = document.getElementById('movie-modal');
+            const content = document.getElementById('modal-content');
+
+            // Show loading state
+            content.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="animate-spin text-6xl mb-4">🎬</div>
+                    <p class="text-gray-300">Loading movie details...</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+
+            try {
+                // Fetch REAL movie details from TMDB
+                const response = await fetch(
+                    `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
+                );
+                const movie = await response.json();
+
+                // Get trailer
+                const trailer = movie.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+
+                // Get cast (top 5)
+                const cast = movie.credits?.cast?.slice(0, 5).map(c => c.name).join(', ') || 'Not available';
+
+                // Get director
+                const director = movie.credits?.crew?.find(c => c.job === 'Director')?.name || 'Not available';
+
+                content.innerHTML = `
+                    <div>
+                        ${movie.backdrop_path ? `
+                            <img src="${TMDB_BACKDROP_BASE}${movie.backdrop_path}"
+                                 alt="${movie.title}"
+                                 class="w-full h-64 object-cover rounded-xl mb-6">
+                        ` : ''}
+
+                        <h2 class="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                            ${movie.title}
+                        </h2>
+
+                        <div class="flex gap-4 mb-6 flex-wrap">
+                            <span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm">
+                                ⭐ ${movie.vote_average?.toFixed(1) || 'N/A'}
+                            </span>
+                            <span class="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm">
+                                ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
+                            </span>
+                            <span class="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm">
+                                ${movie.runtime ? movie.runtime + ' min' : 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold mb-2">Genres</h3>
+                            <div class="flex gap-2 flex-wrap">
+                                ${movie.genres?.map(g => `
+                                    <span class="px-3 py-1 glass rounded-full text-sm">${g.name}</span>
+                                `).join('') || '<span class="text-gray-400">No genres</span>'}
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold mb-2">Overview</h3>
+                            <p class="text-gray-300">${movie.overview || 'No overview available'}</p>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold mb-2">Director</h3>
+                                <p class="text-gray-300">${director}</p>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold mb-2">Top Cast</h3>
+                                <p class="text-gray-300">${cast}</p>
+                            </div>
+                        </div>
+
+                        ${trailerUrl ? `
+                            <div class="mb-6">
+                                <a href="${trailerUrl}" target="_blank"
+                                   class="inline-block px-6 py-3 bg-red-600 rounded-full font-bold hover:bg-red-700 transition">
+                                    ▶️ Watch Trailer
+                                </a>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex justify-center gap-4 mt-6 flex-wrap">
+                            <button onclick="markAsWatched(${id}, '${movie.title.replace(/'/g, "\\'")}'))"
+                                    class="px-6 py-3 bg-green-600 rounded-full font-bold hover:bg-green-700 transition">
+                                ✓ Mark as Watched
+                            </button>
+                            <button onclick="rateMovie(${id}, '${movie.title.replace(/'/g, "\\'")}'))"
+                                    class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold hover:shadow-xl transition">
+                                ⭐ Rate & Review
+                            </button>
+                            <button onclick="addToWatchlist(${id}, '${movie.title.replace(/'/g, "\\'")}'))"
+                                    class="px-6 py-3 bg-purple-600 rounded-full font-bold hover:bg-purple-700 transition">
+                                ➕ Add to Watchlist
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading movie details:', error);
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-red-400 text-xl mb-4">Error loading movie details</p>
+                        <p class="text-gray-400">${error.message}</p>
+                        <button onclick="closeModal()" class="mt-6 px-6 py-3 bg-purple-600 rounded-full font-bold hover:bg-purple-700 transition">
+                            Close
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        async function rateMovie(id, title) {
+            currentRatingMovieId = id;
+            currentRatingMovieTitle = title;
+            selectedRating = 0;
+
+            document.getElementById('rating-movie-title').textContent = title;
+            document.getElementById('rating-display').textContent = 'Select a rating';
+            document.getElementById('movie-review').value = '';
+            document.getElementById('mark-watched').checked = false;
+
+            // Check if already rated
+            const ratings = getRatings();
+            if (ratings[id]) {
+                selectedRating = ratings[id].rating;
+                document.getElementById('rating-display').textContent = `${selectedRating} Stars`;
+                document.getElementById('movie-review').value = ratings[id].review || '';
+            }
+
+            // Check if already watched
+            const watched = getWatched();
+            if (watched.includes(id)) {
+                document.getElementById('mark-watched').checked = true;
+            }
+
+            closeModal();
+            document.getElementById('rating-modal').classList.remove('hidden');
+        }
+
+        function setRating(rating) {
+            selectedRating = rating;
+            document.getElementById('rating-display').textContent = `${rating} Stars`;
+        }
+
+        function closeRatingModal() {
+            document.getElementById('rating-modal').classList.add('hidden');
+        }
+
+        async function saveRating() {
+            if (selectedRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const review = document.getElementById('movie-review').value;
+            const watched = document.getElementById('mark-watched').checked;
+
+            // Save rating
+            const ratings = getRatings();
+            ratings[currentRatingMovieId] = {
+                rating: selectedRating,
+                review: review,
+                title: currentRatingMovieTitle,
+                date: new Date().toISOString()
+            };
+            saveRatings(ratings);
+
+            // Save to watched list if checked
+            if (watched) {
+                const watchedList = getWatched();
+                if (!watchedList.includes(currentRatingMovieId)) {
+                    watchedList.push(currentRatingMovieId);
+                    saveWatched(watchedList);
+                }
+            }
+
+            closeRatingModal();
+            updateStats();
+
+            // Show success message
+            alert(`Successfully rated "${currentRatingMovieTitle}" with ${selectedRating} stars!`);
+        }
+
+        async function markAsWatched(id, title) {
+            const watched = getWatched();
+
+            if (watched.includes(id)) {
+                alert(`You've already marked "${title}" as watched!`);
+                return;
+            }
+
+            watched.push(id);
+            saveWatched(watched);
+            updateStats();
+
+            alert(`Successfully marked "${title}" as watched!`);
+        }
+
+        async function addToWatchlist(id, title) {
+            const watchlist = getWatchlist();
+
+            if (watchlist.find(m => m.id === id)) {
+                alert(`"${title}" is already in your watchlist!`);
+                return;
+            }
+
+            // Fetch movie poster from TMDB
+            try {
+                const response = await fetch(
+                    `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
+                );
+                const movie = await response.json();
+
+                watchlist.push({
+                    id: id,
+                    title: title,
+                    poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : null,
+                    added: new Date().toISOString()
+                });
+
+                saveWatchlist(watchlist);
+                updateStats();
+
+                alert(`Successfully added "${title}" to your watchlist!`);
+            } catch (error) {
+                console.error('Error adding to watchlist:', error);
+                alert(`Error adding "${title}" to watchlist`);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-watched').textContent = getWatched().length;
+            document.getElementById('stat-rated').textContent = Object.keys(getRatings()).length;
+            document.getElementById('stat-watchlist').textContent = getWatchlist().length;
+        }
+
+        async function showWatchedMovies() {
+            const watched = getWatched();
+            if (watched.length === 0) {
+                alert('You haven\'t marked any movies as watched yet!');
+                return;
+            }
+
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Loading your watched movies...</div>';
+
+            const movies = await Promise.all(
+                watched.map(async (id) => {
+                    try {
+                        const response = await fetch(
+                            `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
+                        );
+                        const movie = await response.json();
+                        return {
+                            id: movie.id,
+                            title: movie.title,
+                            poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : null,
+                            rating: movie.vote_average?.toFixed(1) || 'N/A',
+                            year: movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'
+                        };
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+
+            displayMovies(movies.filter(m => m !== null));
+        }
+
+        async function showRatedMovies() {
+            const ratings = getRatings();
+            const ratedIds = Object.keys(ratings);
+
+            if (ratedIds.length === 0) {
+                alert('You haven\'t rated any movies yet!');
+                return;
+            }
+
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Loading your rated movies...</div>';
+
+            const movies = await Promise.all(
+                ratedIds.map(async (id) => {
+                    try {
+                        const response = await fetch(
+                            `${TMDB_BASE_URL}/movie/${id}?api_key=${TMDB_API_KEY}`
+                        );
+                        const movie = await response.json();
+                        return {
+                            id: movie.id,
+                            title: movie.title,
+                            poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : null,
+                            rating: ratings[id].rating,
+                            year: movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'
+                        };
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+
+            displayMovies(movies.filter(m => m !== null));
+        }
+
+        async function showWatchlistMovies() {
+            const watchlist = getWatchlist();
+
+            if (watchlist.length === 0) {
+                alert('Your watchlist is empty!');
+                return;
+            }
+
+            const grid = document.getElementById('movies-grid');
+            displayMovies(watchlist.map(m => ({
+                id: m.id,
+                title: m.title,
+                poster: m.poster,
+                rating: 'N/A',
+                year: 'N/A'
+            })));
+        }
+
+        function closeModal() {
+            document.getElementById('movie-modal').classList.add('hidden');
+        }
+
+        // Preferences Modal Functions
+        function showPreferencesModal() {
+            const modal = document.getElementById('preferences-modal');
+            modal.classList.remove('hidden');
+
+            // Populate genres list
+            const genresList = document.getElementById('genres-list');
+            genresList.innerHTML = GENRES.map(genre => `
+                <button type="button"
+                        onclick="toggleGenre(${genre.id}, '${genre.name}')"
+                        id="genre-${genre.id}"
+                        class="px-4 py-2 rounded-lg border border-gray-700 hover:border-purple-500 transition ${selectedGenres.has(genre.id) ? 'bg-purple-600 border-purple-500' : 'bg-gray-800'}">
+                    ${genre.name}
+                </button>
+            `).join('');
+        }
+
+        function closePreferencesModal() {
+            document.getElementById('preferences-modal').classList.add('hidden');
+        }
+
+        function toggleGenre(genreId, genreName) {
+            if (selectedGenres.has(genreId)) {
+                selectedGenres.delete(genreId);
+                document.getElementById(`genre-${genreId}`).classList.remove('bg-purple-600', 'border-purple-500');
+                document.getElementById(`genre-${genreId}`).classList.add('bg-gray-800');
+            } else {
+                if (selectedGenres.size >= 5) {
+                    alert('You can select up to 5 genres only');
+                    return;
+                }
+                selectedGenres.add(genreId);
+                document.getElementById(`genre-${genreId}`).classList.add('bg-purple-600', 'border-purple-500');
+                document.getElementById(`genre-${genreId}`).classList.remove('bg-gray-800');
+            }
+        }
+
+        async function savePreferences(event) {
+            event.preventDefault();
+
+            userPreferences = {
+                genres: Array.from(selectedGenres),
+                actors: document.getElementById('favorite-actors').value.split(',').map(s => s.trim()).filter(s => s),
+                directors: document.getElementById('favorite-directors').value.split(',').map(s => s.trim()).filter(s => s),
+                language: document.getElementById('preferred-language').value,
+                favoriteMovies: document.getElementById('favorite-movies').value.split(',').map(s => s.trim()).filter(s => s)
+            };
+
+            console.log('Saved preferences:', userPreferences);
+
+            closePreferencesModal();
+
+            // Show loading message
+            const grid = document.getElementById('movies-grid');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">Generating personalized recommendations based on your preferences...</div>';
+
+            // Get recommendations based on preferences
+            await getRecommendations();
+        }
+
+        async function getRecommendations() {
+            if (!userPreferences || selectedGenres.size === 0) {
+                alert('Please set your preferences first');
+                showPreferencesModal();
+                return;
+            }
+
+            const grid = document.getElementById('movies-grid');
+
+            try {
+                // Build discover query with user preferences
+                const genreIds = Array.from(selectedGenres).join(',');
+                const language = userPreferences.language !== 'all' ? userPreferences.language : '';
+
+                let url = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}`;
+                url += `&with_genres=${genreIds}`;
+                url += `&sort_by=vote_average.desc&vote_count.gte=100`;
+
+                if (language) {
+                    url += `&with_original_language=${language}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    let movies = data.results.slice(0, 18).map(movie => ({
+                        id: movie.id,
+                        title: movie.title,
+                        poster: movie.poster_path ? `${TMDB_IMAGE_BASE}${movie.poster_path}` : 'https://via.placeholder.com/500x750/6366f1/ffffff?text=No+Poster',
+                        backdrop: movie.backdrop_path ? `${TMDB_BACKDROP_BASE}${movie.backdrop_path}` : null,
+                        rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
+                        year: movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A',
+                        overview: movie.overview || 'No description available',
+                        popularity: movie.popularity
+                    }));
+
+                    // If user provided favorite actors/directors, try to prioritize movies with them
+                    if (userPreferences.actors.length > 0 || userPreferences.directors.length > 0) {
+                        // Fetch credits for top movies and re-rank
+                        const moviesWithCredits = await Promise.all(
+                            movies.slice(0, 10).map(async (movie) => {
+                                try {
+                                    const creditsResponse = await fetch(
+                                        `${TMDB_BASE_URL}/movie/${movie.id}/credits?api_key=${TMDB_API_KEY}`
+                                    );
+                                    const credits = await creditsResponse.json();
+
+                                    const cast = credits.cast?.slice(0, 10).map(c => c.name.toLowerCase()) || [];
+                                    const crew = credits.crew?.filter(c => c.job === 'Director').map(c => c.name.toLowerCase()) || [];
+
+                                    // Calculate match score
+                                    let score = 0;
+                                    userPreferences.actors.forEach(actor => {
+                                        if (cast.some(c => c.includes(actor.toLowerCase()))) score += 2;
+                                    });
+                                    userPreferences.directors.forEach(director => {
+                                        if (crew.some(c => c.includes(director.toLowerCase()))) score += 3;
+                                    });
+
+                                    return { ...movie, matchScore: score };
+                                } catch {
+                                    return { ...movie, matchScore: 0 };
+                                }
+                            })
+                        );
+
+                        // Sort by match score
+                        movies = moviesWithCredits.sort((a, b) => b.matchScore - a.matchScore);
+                    }
+
+                    displayMovies(movies);
+
+                    // Show success message
+                    grid.insertAdjacentHTML('beforebegin', `
+                        <div class="mb-4 bg-green-500/20 border border-green-500 rounded-lg p-4 text-center">
+                            <p class="font-bold">Recommendations Ready!</p>
+                            <p class="text-sm text-gray-300">Found ${movies.length} movies matching your preferences</p>
+                        </div>
+                    `);
+                } else {
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-8">No movies found matching your preferences. Try adjusting your selections.</div>';
+                }
+            } catch (error) {
+                console.error('Error getting recommendations:', error);
+                grid.innerHTML = `<div class="col-span-full text-center text-red-400 py-8">Error loading recommendations: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-load movies when dashboard is shown
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user was logged in
+            if (currentUser) {
+                updateUIForLoggedInUser();
+                showSection('dashboard');
+            }
+        });
+    </script>
+</body>
+</html>
